@@ -39,9 +39,6 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	export tmp;
 }
 
-:mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
-	*:4 addr1 = *:4 addr2;
-}
 
 :op_0D is t32_opcode=0x0D & t32_opcode { __unkown_op(t32_opcode:1); }
 :op_0E is t32_opcode=0x0E & t32_opcode { __unkown_op(t32_opcode:1); }
@@ -55,12 +52,17 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	*:$(REGSIZE) addr1 = tmp + tmp2;
 }
 
-:op_43 is t32_opcode=0x43 & t32_opcode { __unkown_op(t32_opcode:1); }
 :op_44 is t32_opcode=0x44 & t32_opcode { __unkown_op(t32_opcode:1); }
 
 :op_4B is t32_opcode=0x4B & t32_opcode { __unkown_op(t32_opcode:1); }
 
 
+:mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
+	*:2 addr1 = *:2 addr2;
+}
+:mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
+	*:4 addr1 = *:4 addr2;
+}
 :mov128 addr1, addr2 is t32_opcode=0x53 & addr1 & addr2 {
 	#FIXME 4x4 store or 1x16 store?
 	*:16 addr1 = *:16 addr2;
@@ -95,9 +97,13 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	affectflags();
 }
 
-define pcodeop __builtin_nand;
-:nand addr1, imm2 is t32_opcode=0x98 & addr1 & imm2 {
-	*:$(REGSIZE) addr1 = __builtin_nand(*:$(REGSIZE) addr1, imm2);
+:rsh addr1, imm2 is t32_opcode=0x98 & addr1 & imm2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2 = imm2;
+	*:$(REGSIZE) addr1 = tmp >> tmp2;
+
+	logicflags();
+	affectflags();
 }
 
 define pcodeop __builtin_setmode;
