@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<processor_spec>
+  <programcounter register="pc"/>
+  <default_symbols>
+    <symbol name="Reset" address="ram:0x00000000" entry="true" type="code"/>
+    <symbol name="__kirk_code_self_test" address="ram:0x00002228" entry="false" type="code"/>
+    <symbol name="__kirk_code_wait_modules_init" address="ram:0x00001CC0" entry="false" type="code"/>
+  </default_symbols>
+</processor_spec>

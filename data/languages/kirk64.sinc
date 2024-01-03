@@ -1,0 +1,73 @@
+define token instr64(64)
+	t64_opcode = (56, 63)
+	t64_addr1  = (44, 55)
+	t64_addr2  = (32, 43)
+	t64_imm32  = ( 0, 31)
+;
+
+addr1_64: reloc is t64_addr1 [reloc = $(RAMBASE) + (t64_addr1 << 2);] {
+	export *:$(ADDRSIZE) reloc;
+}
+
+addr2_64: reloc is t64_addr2 [reloc = $(RAMBASE) + (t64_addr2 << 2);] {
+	export *:$(ADDRSIZE) reloc;
+}
+
+imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
+	local tmp:$(REGSIZE) = immed;
+	export tmp;
+}
+
+:store addr1_64, imm32_64 is t64_opcode=0x09 & addr1_64 & imm32_64 {
+	*:4 addr1_64 = imm32_64;
+}
+
+:cmp addr1_64, imm32_64 is t64_opcode=0x11 & addr1_64 & imm32_64 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
+	resultflags2(tmp, imm32_64);
+	affectflags();
+}
+
+:op_12 is t64_opcode=0x12 & t64_opcode { __unkown_op(t64_opcode:1); }
+
+:add addr1_64, imm32_64 is t64_opcode=0x19 & addr1_64 & imm32_64 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
+	local res:$(REGSIZE) = tmp + imm32_64;
+	*:$(REGSIZE) addr1_64 = res;
+
+	addflags(tmp, imm32_64);
+	resultflags(res);
+	affectflags();
+}
+
+:op_21 is t64_opcode=0x21 & t64_opcode { __unkown_op(t64_opcode:1); } # probably sets ZR somehow see 00001b2c
+
+:sub addr1_64, imm32_64 is t64_opcode=0x29 & addr1_64 & imm32_64 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
+	local res:$(REGSIZE) = tmp - imm32_64;
+	*:$(REGSIZE) addr1_64 = res;
+
+	subflags(tmp, imm32_64);
+	resultflags(res);
+	affectflags();
+}
+
+:or addr1_64, imm32_64 is t64_opcode=0x39 & addr1_64 & imm32_64 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
+	local res:$(REGSIZE) = tmp | imm32_64;
+	*:$(REGSIZE) addr1_64 = res;
+
+	logicflags();
+	affectflags();
+}
+
+:and addr1_64, imm32_64 is t64_opcode=0x3A & addr1_64 & imm32_64 {
+	local tmp = *:$(REGSIZE) addr1_64;
+	local res:$(REGSIZE) = tmp & imm32_64;
+	*:$(REGSIZE) addr1_64 = res;
+
+	logicflags();
+	affectflags();
+}
+
+:op_49 is t64_opcode=0x49 & t64_opcode { __unkown_op(t64_opcode:1); }

@@ -1,0 +1,168 @@
+define token instr32(32)
+	t32_opcode = (24, 31)
+	t32_opcodeH= (28, 31)
+	cond       = (24, 27)
+	t32_addr1  = (12, 23)
+	t32_addr2  = ( 0, 11)
+
+	t32_imm1   = (12, 23)
+	t32_imm2   = ( 0, 11)
+
+	t32_branch = ( 0, 11)
+;
+
+cc: "eq" is cond=2        { export ZR; }
+cc: "ne" is cond=1        { tmp:1 = !ZR; export tmp; }
+cc: "ge" is cond=3        { tmp:1 = (NG==OV); export tmp; }
+cc: "le" is cond=4        { tmp:1 = ZR || (NG!=OV); export tmp; }
+COND: cc is cc { if (!cc) goto inst_next; }   # Execute conditionally
+
+addr1: reloc is t32_addr1 [reloc = $(RAMBASE) + (t32_addr1 << 2);] {
+	export *:$(ADDRSIZE) reloc;
+}
+
+addr2: reloc is t32_addr2 [reloc = $(RAMBASE) + (t32_addr2 << 2);] {
+	export *:$(ADDRSIZE) reloc;
+}
+
+branchAddress: reloc is t32_branch [reloc = (t32_branch << 2);] {
+	export *:$(ADDRSIZE) reloc;
+}
+
+imm1: immed is t32_imm1 [immed = 0 + t32_imm1;] {
+	local tmp:$(REGSIZE) = immed;
+	export tmp;
+}
+
+imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
+	local tmp:$(REGSIZE) = immed;
+	export tmp;
+}
+
+:mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
+	*:4 addr1 = *:4 addr2;
+}
+
+:op_0D is t32_opcode=0x0D & t32_opcode { __unkown_op(t32_opcode:1); }
+:op_0E is t32_opcode=0x0E & t32_opcode { __unkown_op(t32_opcode:1); }
+:op_13 is t32_opcode=0x13 & t32_opcode { __unkown_op(t32_opcode:1); }
+:op_16 is t32_opcode=0x16 & t32_opcode { __unkown_op(t32_opcode:1); } # probably sets ZR somehow see 00001a78
+
+:inc addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
+	#FIXME
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2 = *:$(REGSIZE) addr2;
+	*:$(REGSIZE) addr1 = tmp + tmp2;
+}
+
+:op_43 is t32_opcode=0x43 & t32_opcode { __unkown_op(t32_opcode:1); }
+:op_44 is t32_opcode=0x44 & t32_opcode { __unkown_op(t32_opcode:1); }
+
+:op_4B is t32_opcode=0x4B & t32_opcode { __unkown_op(t32_opcode:1); }
+
+
+:mov128 addr1, addr2 is t32_opcode=0x53 & addr1 & addr2 {
+	#FIXME 4x4 store or 1x16 store?
+	*:16 addr1 = *:16 addr2;
+}
+
+:inc32 addr1, imm2 is t32_opcode=0x80 & addr1 & imm2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local res:$(REGSIZE) = tmp + imm2;
+	*:$(REGSIZE) addr1 = res;
+
+	addflags(tmp, imm2);
+	resultflags(res);
+	affectflags();
+}
+
+:dec32 addr1, imm2 is t32_opcode=0x88 & addr1 & imm2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local res:$(REGSIZE) = tmp - imm2;
+	*:$(REGSIZE) addr1 = res;
+
+	subflags(tmp, imm2);
+	resultflags(res);
+	affectflags();
+}
+
+:lsh addr1, imm2 is t32_opcode=0x90 & addr1 & imm2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2 = imm2;
+	*:$(REGSIZE) addr1 = tmp << tmp2;
+
+	logicflags();
+	affectflags();
+}
+
+define pcodeop __builtin_nand;
+:nand addr1, imm2 is t32_opcode=0x98 & addr1 & imm2 {
+	*:$(REGSIZE) addr1 = __builtin_nand(*:$(REGSIZE) addr1, imm2);
+}
+
+define pcodeop __builtin_setmode;
+:setmode addr1, imm2 is t32_opcode=0xA0 & addr1 & imm2 {
+	__builtin_setmode(addr1, imm2);
+}
+
+define pcodeop __builtin_byteswap;
+:byteswap addr1, imm2 is t32_opcode=0xB0 & addr1 & imm2 {
+	*:$(REGSIZE) addr1 = __builtin_byteswap(*:$(REGSIZE) addr1, imm2);
+}
+
+:test addr1, imm2 is t32_opcode=0xC0 & addr1 & imm2 {
+	local tmp = *:$(REGSIZE) addr1;
+
+	resultflags2(tmp, imm2);
+	affectflags();
+}
+
+:bitset addr1, imm2 is t32_opcode=0xC8 & addr1 & imm2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	tmp = tmp | (1 << imm2);
+	*:$(REGSIZE) addr1 = tmp;
+}
+
+:bitclear addr1, imm2 is t32_opcode=0xD0 & addr1 & imm2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	tmp = tmp & (~(1 << imm2));
+	*:$(REGSIZE) addr1 = tmp;
+}
+
+:clrz is t32_opcode=0xDA {
+	tmpZR = 0;
+	ZR = 0;
+}
+
+:setz is t32_opcode=0xDB {
+	tmpZR = 1;
+	ZR = 1;
+}
+
+:b branchAddress is t32_opcode=0xE0 & branchAddress {
+	goto branchAddress;
+}
+
+:b^COND branchAddress is t32_opcodeH=0xE & COND & branchAddress {
+	build COND;
+	goto branchAddress;
+}
+
+:call branchAddress is t32_opcode=0xe8 & branchAddress {
+	ra = inst_next;
+	call branchAddress;
+}
+
+:call2 branchAddress is t32_opcode=0xe9 & branchAddress {
+	ra = inst_next;
+	call branchAddress;
+}
+
+:ret is t32_opcode=0xF0 {
+	return [ra];
+}
+
+define pcodeop __builtin_crypto_hash_dma;
+:hw_crypto_hash_dma imm1, imm2 is t32_opcode=0xF8 & imm1 & imm2 {
+	__builtin_crypto_hash_dma(imm1, imm2);
+}

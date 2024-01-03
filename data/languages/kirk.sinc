@@ -1,0 +1,92 @@
+define alignment=4;
+
+@define REGSIZE "4"
+@define ADDRSIZE "4"
+@define RAMBASE "0xE0000000"
+
+define space ram type=ram_space size=4 default;
+define space register type=register_space size=4;
+
+define register offset=0 size=4 [
+	r0  r1  r2  r3
+	r4  r5  r6  r7
+];
+
+define register offset=0x1000 size=4 [
+	# Current loop counter.
+	lp_count
+];
+
+define register offset=0x2000 size=4 [
+	# Current loop start address.
+	lp_start
+
+	pc
+	sp  # Dummy stack pointer to make the decompiler work.
+	ra
+	gp # dummy?
+	fp # dummy?
+	ea # dummy?
+	ba # dummy?
+];
+
+define register offset=0x3000 size=1 [
+	# Condition codes.
+	NG ZR CY OV tmpNG tmpZR tmpCY tmpOV
+
+	# "loop enable" boolean.
+	lp_enable
+];
+
+define register offset=0x4000 size=4 [
+	contextreg
+];
+
+
+define context contextreg
+	# Instruction decoding phase.
+	phase = (0, 0) # 0:initial, 1:instruction-parse
+
+	# Indicate that this is the last instruction in a loop.
+	lp_end = (1, 1) noflow
+;
+
+macro addflags(op1,op2) {
+	tmpCY = carry(op1,op2);
+	tmpOV = scarry(op1,op2);
+}
+
+macro subflags(op1,op2) {
+	tmpCY = op2 <= op1;
+	tmpOV = sborrow(op1,op2);
+}
+
+macro logicflags() {
+	tmpCY = 0; #shift_carry; FIXME
+	tmpOV = OV;
+}
+
+macro CVunaffected() {
+	tmpCY = CY;
+	tmpOV = OV;
+}
+
+macro resultflags(result) {
+	tmpNG = result s< 0;
+	tmpZR = result == 0;
+}
+
+macro resultflags2(result, to) {
+	tmpNG = result s< to;
+	tmpZR = result == to;
+}
+
+macro affectflags() {
+  CY = tmpCY; ZR = tmpZR; NG = tmpNG; OV = tmpOV;
+}
+
+macro affect_resflags() {
+  ZR = tmpZR; NG = tmpNG;
+}
+
+define pcodeop __unkown_op;

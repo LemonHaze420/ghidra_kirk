@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<language_definitions>
+  <language processor="PSP kirk"
+            endian="big"
+            size="32"
+            variant="default"
+            version="0.1"
+            slafile="kirk.sla"
+            processorspec="kirk.pspec"
+            id="KIRK:BE:32:default">
+    <description>PSP kirk, big endian</description>
+    <compiler name="default" spec="kirk.cspec" id="default"/>
+  </language>
+</language_definitions>

@@ -1,0 +1,6 @@
+define endian=big;
+
+@include "kirk.sinc"
+
+@include "kirk32.sinc"
+@include "kirk64.sinc"
