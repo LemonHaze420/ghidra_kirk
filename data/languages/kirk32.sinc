@@ -17,11 +17,11 @@ cc: "ge" is cond=3        { tmp:1 = (NG==OV); export tmp; }
 cc: "le" is cond=4        { tmp:1 = ZR || (NG!=OV); export tmp; }
 COND: cc is cc { if (!cc) goto inst_next; }   # Execute conditionally
 
-addr1: reloc is t32_addr1 [reloc = $(RAMBASE) + (t32_addr1 << 2);] {
+addr1: reloc is t32_addr1 [reloc = $(RAMBASE) | (t32_addr1 << 2);] {
 	export *:$(ADDRSIZE) reloc;
 }
 
-addr2: reloc is t32_addr2 [reloc = $(RAMBASE) + (t32_addr2 << 2);] {
+addr2: reloc is t32_addr2 [reloc = $(RAMBASE) | (t32_addr2 << 2);] {
 	export *:$(ADDRSIZE) reloc;
 }
 
@@ -45,17 +45,14 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 :op_13 is t32_opcode=0x13 & t32_opcode { __unkown_op(t32_opcode:1); }
 :op_16 is t32_opcode=0x16 & t32_opcode { __unkown_op(t32_opcode:1); } # probably sets ZR somehow see 00001a78
 
-:inc addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
-	#FIXME
-	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
-	local tmp2 = *:$(REGSIZE) addr2;
-	*:$(REGSIZE) addr1 = tmp + tmp2;
-}
 
 :op_44 is t32_opcode=0x44 & t32_opcode { __unkown_op(t32_opcode:1); }
 
 :op_4B is t32_opcode=0x4B & t32_opcode { __unkown_op(t32_opcode:1); }
 
+:mov addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
+        *:4 addr1 = *:4 addr2;
+}
 
 :mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
 	*:2 addr1 = *:2 addr2;

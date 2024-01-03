@@ -5,11 +5,11 @@ define token instr64(64)
 	t64_imm32  = ( 0, 31)
 ;
 
-addr1_64: reloc is t64_addr1 [reloc = $(RAMBASE) + (t64_addr1 << 2);] {
+addr1_64: reloc is t64_addr1 [reloc = $(RAMBASE) | (t64_addr1 << 2);] {
 	export *:$(ADDRSIZE) reloc;
 }
 
-addr2_64: reloc is t64_addr2 [reloc = $(RAMBASE) + (t64_addr2 << 2);] {
+addr2_64: reloc is t64_addr2 [reloc = $(RAMBASE) | (t64_addr2 << 2);] {
 	export *:$(ADDRSIZE) reloc;
 }
 
