@@ -11,8 +11,8 @@ define token instr32(32)
 	t32_branch = ( 0, 11)
 ;
 
-cc: "eq" is cond=2        { export ZR; }
-cc: "ne" is cond=1        { tmp:1 = !ZR; export tmp; }
+cc: "z" is cond=2        { export ZR; }
+cc: "nz" is cond=1        { tmp:1 = !ZR; export tmp; }
 cc: "gt" is cond=3        { tmp:1 = NG; export tmp; }
 cc: "lt" is cond=4        { tmp:1 = (!NG && !ZR); export tmp; }
 COND: cc is cc { if (!cc) goto inst_next; }   # Execute conditionally
@@ -71,7 +71,7 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	affectflags();
 }
 
-:inc addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
+:adda addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
 	#FIXME
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
 	local tmp2 = *:$(REGSIZE) addr2;

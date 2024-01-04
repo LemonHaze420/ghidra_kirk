@@ -5,11 +5,11 @@ define token instr64(64)
 	t64_imm32  = ( 0, 31)
 ;
 
-addr1_64: reloc is t64_addr1 [reloc = $(RAMBASE) + (t64_addr1 << 2);] {
+addr1_64: reloc is t64_addr1 [reloc = $(RAMBASE) | (t64_addr1 << 2);] {
 	export *:$(ADDRSIZE) reloc;
 }
 
-addr2_64: reloc is t64_addr2 [reloc = $(RAMBASE) + (t64_addr2 << 2);] {
+addr2_64: reloc is t64_addr2 [reloc = $(RAMBASE) | (t64_addr2 << 2);] {
 	export *:$(ADDRSIZE) reloc;
 }
 
@@ -30,7 +30,7 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 
 :op_12 addr1_64, imm32_64 is t64_opcode=0x12 & t64_opcode & addr1_64 & imm32_64 { __unkown_op(t64_opcode:1, addr1_64, imm32_64); } # probably sets ZR somehow see 00001b2c
 
-:add addr1_64, imm32_64 is t64_opcode=0x19 & addr1_64 & imm32_64 {
+:addi addr1_64, imm32_64 is t64_opcode=0x19 & addr1_64 & imm32_64 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
 	local res:$(REGSIZE) = tmp + imm32_64;
 	*:$(REGSIZE) addr1_64 = res;
@@ -52,7 +52,7 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 	affectflags();
 }
 
-:and addr1_64, imm32_64 is t64_opcode=0x39 & addr1_64 & imm32_64 {
+:andi addr1_64, imm32_64 is t64_opcode=0x39 & addr1_64 & imm32_64 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
 	local res:$(REGSIZE) = tmp & imm32_64;
 	*:$(REGSIZE) addr1_64 = res;
@@ -60,9 +60,9 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 	logicflags();
 	affectflags();
 }
-:and addr1_64, imm32_64 is t64_opcode=0x3a & addr1_64 & imm32_64 {
+:ori addr1_64, imm32_64 is t64_opcode=0x3a & addr1_64 & imm32_64 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
-	local res:$(REGSIZE) = tmp & imm32_64;
+	local res:$(REGSIZE) = tmp | imm32_64;
 	*:$(REGSIZE) addr1_64 = res;
 
 	logicflags();

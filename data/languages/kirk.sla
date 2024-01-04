@@ -436,7 +436,7 @@
 <constructor parent="0x0" first="1" length="4" line="0:74">
 <oper id="0x4c"/>
 <oper id="0x4d"/>
-<print piece="inc"/>
+<print piece="adda"/>
 <print piece=" "/>
 <opprint id="0"/>
 <print piece=","/>
@@ -1109,7 +1109,7 @@
 <constructor parent="0x0" first="1" length="8" line="1:33">
 <oper id="0x80"/>
 <oper id="0x81"/>
-<print piece="add"/>
+<print piece="addi"/>
 <print piece=" "/>
 <opprint id="0"/>
 <print piece=","/>
@@ -1252,7 +1252,7 @@
 <constructor parent="0x0" first="1" length="8" line="1:55">
 <oper id="0x87"/>
 <oper id="0x88"/>
-<print piece="and"/>
+<print piece="andi"/>
 <print piece=" "/>
 <opprint id="0"/>
 <print piece=","/>
@@ -1301,7 +1301,7 @@
 <constructor parent="0x0" first="1" length="8" line="1:63">
 <oper id="0x89"/>
 <oper id="0x8a"/>
-<print piece="and"/>
+<print piece="ori"/>
 <print piece=" "/>
 <opprint id="0"/>
 <print piece=","/>
@@ -1829,13 +1829,13 @@
 </context_sym>
 <subtable_sym name="cc" id="0x2a" scope="0x0" numct="4">
 <constructor parent="0x2a" first="1" length="4" line="0:14">
-<print piece="eq"/>
+<print piece="z"/>
 <construct_tpl>
 <handle_tpl><const_tpl type="spaceid" name="register"/><const_tpl type="real" val="0x1"/><const_tpl type="real" val="0x0"/><const_tpl type="real" val="0x3001"/><const_tpl type="real" val="0x0"/><const_tpl type="real" val="0x0"/><const_tpl type="real" val="0x0"/></handle_tpl>
 </construct_tpl>
 </constructor>
 <constructor parent="0x2a" first="1" length="4" line="0:15">
-<print piece="ne"/>
+<print piece="nz"/>
 <construct_tpl>
 <handle_tpl><const_tpl type="spaceid" name="unique"/><const_tpl type="real" val="0x1"/><const_tpl type="real" val="0x0"/><const_tpl type="real" val="0x480"/><const_tpl type="real" val="0x0"/><const_tpl type="real" val="0x0"/><const_tpl type="real" val="0x0"/></handle_tpl>
 <op_tpl code="BOOL_NEGATE"><varnode_tpl><const_tpl type="spaceid" name="unique"/><const_tpl type="real" val="0x480"/><const_tpl type="real" val="0x1"/></varnode_tpl>
