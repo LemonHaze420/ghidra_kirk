@@ -13,8 +13,8 @@ define token instr32(32)
 
 cc: "eq" is cond=2        { export ZR; }
 cc: "ne" is cond=1        { tmp:1 = !ZR; export tmp; }
-cc: "ge" is cond=3        { tmp:1 = (NG==OV); export tmp; }
-cc: "le" is cond=4        { tmp:1 = ZR || (NG!=OV); export tmp; }
+cc: "gt" is cond=3        { tmp:1 = NG; export tmp; }
+cc: "lt" is cond=4        { tmp:1 = (!NG && !ZR); export tmp; }
 COND: cc is cc { if (!cc) goto inst_next; }   # Execute conditionally
 
 addr1: reloc is t32_addr1 [reloc = $(RAMBASE) | (t32_addr1 << 2);] {
@@ -39,16 +39,31 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	export tmp;
 }
 
+:mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
+	*:2 addr1 = *:2 addr2;
+}
+:mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
+	*:4 addr2 = *:4 addr1;
+}
+:mov128 addr1, addr2 is t32_opcode=0x53 & addr1 & addr2 {
+	*:16 addr2 = *:16 addr1;
+}
 
-:op_0D is t32_opcode=0x0D & t32_opcode { __unkown_op(t32_opcode:1); }
-:op_0E is t32_opcode=0x0E & t32_opcode { __unkown_op(t32_opcode:1); }
-:op_13 is t32_opcode=0x13 & t32_opcode { __unkown_op(t32_opcode:1); }
+:op_0D addr1, addr2 is t32_opcode=0x0D & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
+:op_0E addr1, addr2 is t32_opcode=0x0E & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
 
-
-# probably sets ZR somehow see 00001a78
-:xor32 addr1, imm2  is t32_opcode=0x16 & addr1 & imm2 {
+:cmp32 addr1, addr2 is t32_opcode=0x13 & addr1 & addr2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
-	local tmp2 = imm2;
+	local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
+	resultflags2(tmp, tmp2);
+	affectflags();
+}
+
+# :op_16 addr1, addr2 is t32_opcode=0x16 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); } # probably sets ZR somehow see 00001a78
+
+:xor32 addr1, addr2  is t32_opcode=0x16 & addr1 & addr2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+        local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
 	*:$(REGSIZE) addr1 = tmp ^ tmp2;
 
 	tmpZR = *:$(REGSIZE) addr1 == 0;
@@ -56,25 +71,17 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	affectflags();
 }
 
-
-:op_44 is t32_opcode=0x44 & t32_opcode { __unkown_op(t32_opcode:1); }
-
-:op_4B is t32_opcode=0x4B & t32_opcode { __unkown_op(t32_opcode:1); }
-
-:mov addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
-        *:4 addr1 = *:4 addr2;
+:inc addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
+	#FIXME
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2 = *:$(REGSIZE) addr2;
+	*:$(REGSIZE) addr1 = tmp + tmp2;
 }
 
-:mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
-	*:2 addr1 = *:2 addr2;
-}
-:mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
-	*:4 addr1 = *:4 addr2;
-}
-:mov128 addr1, addr2 is t32_opcode=0x53 & addr1 & addr2 {
-	#FIXME 4x4 store or 1x16 store?
-	*:16 addr1 = *:16 addr2;
-}
+# :op_43 addr1, addr2 is t32_opcode=0x43 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
+:op_44 addr1, addr2 is t32_opcode=0x44 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
+
+:op_4B addr1, addr2 is t32_opcode=0x4B & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
 
 :inc32 addr1, imm2 is t32_opcode=0x80 & addr1 & imm2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
@@ -120,11 +127,11 @@ define pcodeop __builtin_setmode;
 }
 
 define pcodeop __builtin_byteswap;
-:byteswap addr1, imm2 is t32_opcode=0xB0 & addr1 & imm2 {
-	*:$(REGSIZE) addr1 = __builtin_byteswap(*:$(REGSIZE) addr1, imm2);
+:byteswap addr1 is t32_opcode=0xB0 & addr1 {
+	*:$(REGSIZE) addr1 = __builtin_byteswap(*:$(REGSIZE) addr1);
 }
 
-:test addr1, imm2 is t32_opcode=0xC0 & addr1 & imm2 {
+:cmp8 addr1, imm2 is t32_opcode=0xC0 & addr1 & imm2 {
 	local tmp = *:$(REGSIZE) addr1;
 
 	resultflags2(tmp, imm2);

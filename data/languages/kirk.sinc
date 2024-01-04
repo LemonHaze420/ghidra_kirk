@@ -72,12 +72,12 @@ macro CVunaffected() {
 }
 
 macro resultflags(result) {
-	tmpNG = result s< 0;
+	tmpNG = result s> 0;
 	tmpZR = result == 0;
 }
 
 macro resultflags2(result, to) {
-	tmpNG = result s< to;
+	tmpNG = result s> to;
 	tmpZR = result == to;
 }
 
