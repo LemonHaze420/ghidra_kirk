@@ -43,8 +43,13 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	*:4 addr2 = *:4 addr1;
 }
 
-:op_0D addr1, addr2 is t32_opcode=0x0D & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
-:op_0E addr1, addr2 is t32_opcode=0x0E & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
+:mov32a addr1, addr2 is t32_opcode=0x0d & addr1 & addr2 {
+        addr2 = addr1;
+}
+
+:mov32aa addr1, addr2 is t32_opcode=0x0e & addr1 & addr2 {
+        addr2 = addr1;
+}
 
 :cmp32 addr1, addr2 is t32_opcode=0x13 & addr1 & addr2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
@@ -140,9 +145,17 @@ define pcodeop __builtin_setmode;
 	__builtin_setmode(addr1, imm2);
 }
 
-define pcodeop __builtin_byteswap;
+#define pcodeop __builtin_byteswap;
 :byteswap addr1 is t32_opcode=0xB0 & addr1 {
-	*:$(REGSIZE) addr1 = __builtin_byteswap(*:$(REGSIZE) addr1);
+	#*:$(REGSIZE) addr1 = __builtin_byteswap(*:$(REGSIZE) addr1);
+        local a:$(REGSIZE) = *:$(REGSIZE) addr1;
+        local b0 = (a & 0xFF);       
+        local b1 = (a >> 8) & 0xFF;  
+        local b2 = (a >> 16) & 0xFF; 
+        local b3 = (a >> 24) & 0xFF; 
+        
+        local res:$(REGSIZE) = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3;
+        *:$(REGSIZE) addr1 = res;
 }
 
 :cmp8 addr1, imm2 is t32_opcode=0xC0 & addr1 & imm2 {

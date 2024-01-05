@@ -18,7 +18,7 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 	export tmp;
 }
 
-:store addr1_64, imm32_64 is t64_opcode=0x09 & addr1_64 & imm32_64 {
+:sw addr1_64, imm32_64 is t64_opcode=0x09 & addr1_64 & imm32_64 {
 	*:4 addr1_64 = imm32_64;
 }
 
