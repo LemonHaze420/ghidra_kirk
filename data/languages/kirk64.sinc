@@ -60,7 +60,7 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 :andi addr1_64, imm32_64 is t64_opcode=0x39 & addr1_64 & imm32_64 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
 	local res:$(REGSIZE) = tmp & imm32_64;
-	*:$(REGSIZE) addr1_64 = res;
+	addr1_64 = res;
 
 	logicflags();
 	affectflags();
