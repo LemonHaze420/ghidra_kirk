@@ -39,14 +39,8 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	export tmp;
 }
 
-:mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
-	*:2 addr2 = *:2 addr1;
-}
 :mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
 	*:4 addr2 = *:4 addr1;
-}
-:mov128 addr1, addr2 is t32_opcode=0x53 & addr1 & addr2 {
-	*:16 addr2 = *:16 addr1;
 }
 
 :op_0D addr1, addr2 is t32_opcode=0x0D & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
@@ -61,8 +55,13 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 
 :suba addr1, addr2  is t32_opcode=0x16 & addr1 & addr2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
-	local tmp2 = *:$(REGSIZE) addr2;
-	*:$(REGSIZE) addr1 = tmp - tmp2;
+	local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
+        local res = tmp - tmp2;
+	*:$(REGSIZE) addr1 = res;
+        
+	subflags(tmp, tmp2);
+	resultflags(res);
+	affectflags();        
 }
 
 :adda addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
@@ -72,7 +71,18 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	*:$(REGSIZE) addr1 = tmp + tmp2;
 }
 
-:op_44 addr1, addr2 is t32_opcode=0x44 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
+:ora addr1, addr2 is t32_opcode=0x44 & addr1 & addr2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
+	*:$(REGSIZE) addr1 = tmp | tmp2;
+
+	logicflags();
+	affectflags();
+}
+
+:mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
+	*:2 addr2 = *:2 addr1;
+}
 
 :xora addr1, addr2 is t32_opcode=0x4B & addr1 & addr2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
@@ -83,9 +93,13 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	affectflags();
 }
 
+:mov128 addr1, addr2 is t32_opcode=0x53 & addr1 & addr2 {
+	*:16 addr2 = *:16 addr1;
+}
+
 :inc32 addr1, imm2 is t32_opcode=0x80 & addr1 & imm2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
-	local res:$(REGSIZE) = tmp + imm2;
+	local res:$(REGSIZE) = tmp + 4 + (4 * imm2);
 	*:$(REGSIZE) addr1 = res;
 
 	addflags(tmp, imm2);
@@ -95,7 +109,7 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 
 :dec32 addr1, imm2 is t32_opcode=0x88 & addr1 & imm2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
-	local res:$(REGSIZE) = tmp - imm2;
+	local res:$(REGSIZE) = tmp - 4 - (4 * imm2);
 	*:$(REGSIZE) addr1 = res;
 
 	subflags(tmp, imm2);
