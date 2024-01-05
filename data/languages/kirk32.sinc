@@ -40,7 +40,7 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 }
 
 :mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
-	*:2 addr1 = *:2 addr2;
+	*:2 addr2 = *:2 addr1;
 }
 :mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
 	*:4 addr2 = *:4 addr1;
@@ -59,16 +59,10 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	affectflags();
 }
 
-# :op_16 addr1, addr2 is t32_opcode=0x16 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); } # probably sets ZR somehow see 00001a78
-
-:xor32 addr1, addr2  is t32_opcode=0x16 & addr1 & addr2 {
+:suba addr1, addr2  is t32_opcode=0x16 & addr1 & addr2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
-        local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
-	*:$(REGSIZE) addr1 = tmp ^ tmp2;
-
-	tmpZR = *:$(REGSIZE) addr1 == 0;
-	logicflags();
-	affectflags();
+	local tmp2 = *:$(REGSIZE) addr2;
+	*:$(REGSIZE) addr1 = tmp - tmp2;
 }
 
 :adda addr1, addr2 is t32_opcode=0x1B & addr1 & addr2 {
@@ -78,10 +72,16 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	*:$(REGSIZE) addr1 = tmp + tmp2;
 }
 
-# :op_43 addr1, addr2 is t32_opcode=0x43 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
 :op_44 addr1, addr2 is t32_opcode=0x44 & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
 
-:op_4B addr1, addr2 is t32_opcode=0x4B & t32_opcode & addr1 & addr2 { __unkown_op(t32_opcode:1, addr1, addr2); }
+:xora addr1, addr2 is t32_opcode=0x4B & addr1 & addr2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
+	*:$(REGSIZE) addr1 = tmp ^ tmp2;
+
+	logicflags();
+	affectflags();
+}
 
 :inc32 addr1, imm2 is t32_opcode=0x80 & addr1 & imm2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;

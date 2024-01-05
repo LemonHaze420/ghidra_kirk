@@ -28,7 +28,12 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 	affectflags();
 }
 
-:op_12 addr1_64, imm32_64 is t64_opcode=0x12 & t64_opcode & addr1_64 & imm32_64 { __unkown_op(t64_opcode:1, addr1_64, imm32_64); } # probably sets ZR somehow see 00001b2c
+:cmp+ addr1_64, imm32_64 is t64_opcode=0x12 & addr1_64 & imm32_64 {
+	local tmp = *:$(REGSIZE) addr1_64;
+
+	resultflags2(tmp, imm32_64);
+	affectflags();
+}
 
 :addi addr1_64, imm32_64 is t64_opcode=0x19 & addr1_64 & imm32_64 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
@@ -42,7 +47,7 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 
 :op_21 addr1_64, imm32_64 is t64_opcode=0x21 & t64_opcode & addr1_64 & imm32_64 { __unkown_op(t64_opcode:1, addr1_64, imm32_64); }
 
-:sub addr1_64, imm32_64 is t64_opcode=0x29 & addr1_64 & imm32_64 {
+:subi addr1_64, imm32_64 is t64_opcode=0x29 & addr1_64 & imm32_64 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
 	local res:$(REGSIZE) = tmp - imm32_64;
 	*:$(REGSIZE) addr1_64 = res;
@@ -69,6 +74,11 @@ imm32_64: immed is t64_imm32 [immed = 0 + t64_imm32;] {
 	affectflags();
 }
 
-# :op_3A addr1_64, imm32_64 is t64_opcode=0x3A & t64_opcode & addr1_64 & imm32_64 { __unkown_op(t64_opcode:1, addr1_64, imm32_64); }
+:xori addr1_64, imm32_64 is t64_opcode=0x49 & addr1_64 & imm32_64 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1_64;
+	local res:$(REGSIZE) = tmp ^ imm32_64;
+	*:$(REGSIZE) addr1_64 = res;
 
-:op_49 addr1_64, imm32_64 is t64_opcode=0x49 & t64_opcode & addr1_64 & imm32_64 { __unkown_op(t64_opcode:1, addr1_64, imm32_64); }
+	logicflags();
+	affectflags();
+}
