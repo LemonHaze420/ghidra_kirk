@@ -4,4 +4,7 @@
 Place inside `Ghidra\Processors\ghidra_kirk`
 
 ## Credits
-TBA
+- LemonHaze
+- Proxima
+- zecoxao
+- Anonymous
