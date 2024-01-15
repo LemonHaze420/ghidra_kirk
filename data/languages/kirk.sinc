@@ -88,5 +88,3 @@ macro affectflags() {
 macro affect_resflags() {
   ZR = tmpZR; NG = tmpNG;
 }
-
-define pcodeop __unkown_op;

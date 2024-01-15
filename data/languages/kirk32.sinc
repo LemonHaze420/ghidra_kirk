@@ -211,6 +211,6 @@ define pcodeop __builtin_setmode;
 }
 
 define pcodeop __builtin_crypto_hash_dma;
-:hw_crypto_hash_dma imm1, imm2 is t32_opcode=0xF8 & imm1 & imm2 {
+:intr imm1, imm2 is t32_opcode=0xF8 & imm1 & imm2 {
 	__builtin_crypto_hash_dma(imm1, imm2);
 }
