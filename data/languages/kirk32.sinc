@@ -39,8 +39,20 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	export tmp;
 }
 
+:nop is t32_opcode=0x00 {
+        
+}
+
+:mov32x addr1, addr2 is t32_opcode=0x0A & addr1 & addr2 {
+	*:4 addr2 = *:4 addr1;
+}
+
 :mov32 addr1, addr2 is t32_opcode=0x0B & addr1 & addr2 {
 	*:4 addr2 = *:4 addr1;
+}
+
+:movy addr1, addr2 is t32_opcode=0x0c & addr1 & addr2 {
+        addr2 = addr1;
 }
 
 :mov32a addr1, addr2 is t32_opcode=0x0d & addr1 & addr2 {
@@ -85,11 +97,24 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	affectflags();
 }
 
+:mov8 addr1, imm2 is t32_opcode=0x41 & addr1 & imm2 { 
+	*:1 addr1 = imm2;
+}
+
 :mov16 addr1, addr2 is t32_opcode=0x43 & addr1 & addr2 { 
 	*:2 addr2 = *:2 addr1;
 }
 
 :xora addr1, addr2 is t32_opcode=0x4B & addr1 & addr2 {
+	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
+	local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
+	*:$(REGSIZE) addr1 = tmp ^ tmp2;
+
+	logicflags();
+	affectflags();
+}
+
+:xorx addr1, addr2 is t32_opcode=0x4E & addr1 & addr2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
 	local tmp2:$(REGSIZE) = *:$(REGSIZE) addr2;
 	*:$(REGSIZE) addr1 = tmp ^ tmp2;
@@ -120,6 +145,18 @@ imm2: immed is t32_imm2 [immed = 0 + t32_imm2;] {
 	subflags(tmp, imm2);
 	resultflags(res);
 	affectflags();
+}
+
+
+:op89 addr1, addr2 is t32_opcode=0x89 & addr1 & addr2 
+{
+
+}
+
+
+:op8B addr1, imm2 is t32_opcode=0x8B & addr1 & imm2
+{
+
 }
 
 :lsh addr1, imm2 is t32_opcode=0x90 & addr1 & imm2 {
@@ -165,10 +202,38 @@ define pcodeop __builtin_setmode;
 	affectflags();
 }
 
+:cmp8 addr1, imm2 is t32_opcode=0xC3 & addr1 & imm2 {
+	local tmp = *:$(REGSIZE) addr1;
+
+	resultflags2(tmp, imm2);
+	affectflags();
+}
+
+:cmp8 addr1, imm2 is t32_opcode=0xC6 & addr1 & imm2 {
+	local tmp = *:$(REGSIZE) addr1;
+
+	resultflags2(tmp, imm2);
+	affectflags();
+}
+
+:cmp8 addr1, imm2 is t32_opcode=0xC7 & addr1 & imm2 {
+	local tmp = *:$(REGSIZE) addr1;
+
+	resultflags2(tmp, imm2);
+	affectflags();
+}
+
 :bitset addr1, imm2 is t32_opcode=0xC8 & addr1 & imm2 {
 	local tmp:$(REGSIZE) = *:$(REGSIZE) addr1;
 	tmp = tmp | (1 << imm2);
 	*:$(REGSIZE) addr1 = tmp;
+}
+
+:cmp8 addr1, imm2 is t32_opcode=0xC9 & addr1 & imm2 {
+	local tmp = *:$(REGSIZE) addr1;
+
+	resultflags2(tmp, imm2);
+	affectflags();
 }
 
 :bitclear addr1, imm2 is t32_opcode=0xD0 & addr1 & imm2 {
@@ -186,6 +251,18 @@ define pcodeop __builtin_setmode;
 	tmpZR = 1;
 	ZR = 1;
 }
+
+
+:jz branchAddress is t32_opcode=0x62 & branchAddress {
+	goto branchAddress;
+}
+
+
+:jnz branchAddress is t32_opcode=0x68 & branchAddress {
+        if (ZR) goto inst_next;
+        goto branchAddress;
+}
+
 
 :b branchAddress is t32_opcode=0xE0 & branchAddress {
 	goto branchAddress;
